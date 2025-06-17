@@ -39,11 +39,13 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   DEPENDENCIES sensor_msgs geometry_msgs std_msgs builtin_interfaces
 )
 
-
-
-
-
-
+ament_export_dependencies(
+  sensor_msgs
+  geometry_msgs
+  std_msgs
+  builtin_interfaces
+  rosidl_default_runtime
+)
 
 add_library(sensor_utils
   src/sensor_utils.cpp
