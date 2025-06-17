@@ -80,8 +80,7 @@ private:
         // - Use sensor_utils::convert_compressed_to_image
         ***************************************************************/
         // 내가 적은: Convert CompressedImage to Image and publish
-        sensor_msgs::msg::Image decoded_image;
-        sensor_utils::convert_compressed_to_image(*msg, decoded_image);
+        sensor_msgs::msg::Image decoded_image = sensor_utils::convert_compressed_to_image(*msg);
         image_pub_->publish(decoded_image);
     }
 
@@ -104,8 +103,7 @@ private:
         // - Publish the result to "filtered_points" topic
         ***************************************************************/
         // 내가 적은: Filter the pointcloud and publish
-        sensor_msgs::msg::PointCloud2 filtered;
-        sensor_utils::filter_pointcloud(*msg, camera_info_, camera_pose_, filtered);
+        sensor_msgs::msg::PointCloud2 filtered = sensor_utils::filter_pointcloud(*msg, camera_info_, camera_pose_);
         pub_->publish(filtered);
     }
 
