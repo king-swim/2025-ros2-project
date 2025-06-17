@@ -34,6 +34,10 @@ include_directories(
 # - Dependencies : sensor_msgs, geometry_msgs, std_msgs, builtin_interfaces
 ############################################################################
 
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/SetFilterConfig.srv"
+  DEPENDENCIES sensor_msgs geometry_msgs std_msgs builtin_interfaces
+)
 
 
 
@@ -59,12 +63,14 @@ ament_target_dependencies(sensor_utils
 # - Use add_executable and ament_target_dependencies
 # - Dependencies: rclcpp, sensor_msgs, geometry_msgs, OpenCV
 ############################################################################
+add_executable(service_node src/service_node.cpp)
 
-
-
-
-
-
+ament_target_dependencies(service_node
+  rclcpp
+  sensor_msgs
+  geometry_msgs
+  OpenCV
+)
 
 rosidl_target_interfaces(service_node
   ${PROJECT_NAME} "rosidl_typesupport_cpp")
@@ -76,11 +82,13 @@ target_link_libraries(service_node sensor_utils)
 # - Use add_executable and ament_target_dependencies
 # - Dependencies: rclcpp, sensor_msgs, geometry_msgs
 ############################################################################
+add_executable(client_node src/client_node.cpp)
 
-
-
-
-
+ament_target_dependencies(client_node
+  rclcpp
+  sensor_msgs
+  geometry_msgs
+)
 
 rosidl_target_interfaces(client_node
   ${PROJECT_NAME} "rosidl_typesupport_cpp")
@@ -88,12 +96,24 @@ rosidl_target_interfaces(client_node
 ############################################################################
 # TODO: Install the service node and client node
 ############################################################################
+install(TARGETS
+  client_node
+  service_node
+  sensor_utils
+  DESTINATION lib/${PROJECT_NAME}
+)
 
+install(DIRECTORY include/
+  DESTINATION include/
+)
 
+install(DIRECTORY srv/
+  DESTINATION share/${PROJECT_NAME}/
+)
 
-
-
-
+install(DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME}/
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

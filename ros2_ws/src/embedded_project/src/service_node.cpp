@@ -26,7 +26,7 @@ public:
         service_ = create_service<embedded_project::srv::SetFilterConfig>(
             "SetFilterConfig",
             std::bind(&FilterServiceNode::serviceCallback, this,
-                std::placeholders::_1, std::placeholders::_2));
+                      std::placeholders::_1, std::placeholders::_2));
 
         // Publishers for filtered pointcloud and image result
         pub_ = create_publisher<sensor_msgs::msg::PointCloud2>("filtered_points", 10);
@@ -44,18 +44,18 @@ private:
         // - Save camera_info_ and camera_pose_ from request
         // - Mark configuration as available (have_config_ = true)
         ***************************************************************/
-
-
-
-
-
-
+        // 내가 적은:
+        camera_name_ = request->camera_name;
+        camera_info_ = request->camera_intrinsic;
+        camera_pose_ = request->camera_extrinsic;
+        have_config_ = true;
 
         // Build the topic name for the compressed image stream
         std::string image_topic = "/" + camera_name_ + "/image_rect_compressed";
 
         // If previously subscribed, unsubscribe before resubscribing
-        if (image_sub_) {
+        if (image_sub_)
+        {
             image_sub_.reset();
         }
 
@@ -65,13 +65,12 @@ private:
         // - Bind the callback to imageCallback()
         // - Set success message for the service response
         ***************************************************************/
+        // 내가 적은: Subscribe to compressed image topic
+        image_sub_ = create_subscription<sensor_msgs::msg::CompressedImage>(
+            image_topic, 10,
+            std::bind(&FilterServiceNode::imageCallback, this, std::placeholders::_1));
 
-
-
-
-
-
-
+        response->message = "Camera config received and image subscription set.";
     }
 
     void imageCallback(const sensor_msgs::msg::CompressedImage::SharedPtr msg)
@@ -80,11 +79,10 @@ private:
         // TODO: Convert CompressedImage to Image and publish
         // - Use sensor_utils::convert_compressed_to_image
         ***************************************************************/
-
-
-
-
-
+        // 내가 적은: Convert CompressedImage to Image and publish
+        sensor_msgs::msg::Image decoded_image;
+        sensor_utils::convert_compressed_to_image(*msg, decoded_image);
+        image_pub_->publish(decoded_image);
     }
 
     void lidarCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
@@ -94,23 +92,21 @@ private:
         // TODO: Check if camera config is available
         // - If not, log a throttled warning and return
         ***************************************************************/
-
-
-
-
-
-
+        // 내가 적은: Check if config is available
+        if (!have_config_)
+        {
+            RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 5000, "Camera config not set. Skipping filtering.");
+            return;
+        }
         /***************************************************************
         // TODO: Filter the incoming pointcloud using sensor_utils
         // - Call sensor_utils::filter_pointcloud with msg, camera_info_, camera_pose_
         // - Publish the result to "filtered_points" topic
         ***************************************************************/
-
-
-
-
-
-
+        // 내가 적은: Filter the pointcloud and publish
+        sensor_msgs::msg::PointCloud2 filtered;
+        sensor_utils::filter_pointcloud(*msg, camera_info_, camera_pose_, filtered);
+        pub_->publish(filtered);
     }
 
     // Configuration status and data
@@ -127,7 +123,7 @@ private:
     rclcpp::Subscription<sensor_msgs::msg::CompressedImage>::SharedPtr image_sub_;
 };
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     // Start ROS 2 and spin the node
     rclcpp::init(argc, argv);

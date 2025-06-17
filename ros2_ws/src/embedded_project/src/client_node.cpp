@@ -11,7 +11,7 @@
 
 using namespace std::chrono_literals;
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     // Initialize the ROS 2 client library
     rclcpp::init(argc, argv);
@@ -26,24 +26,26 @@ int main(int argc, char** argv)
 
     // Define containers for translation and rotation values
     std::vector<double> translation, rotation;
-    std::vector<double> default_trans{ 0.0, 0.0, 0.0 };
-    std::vector<double> default_rot{ 0.0, 0.0, 0.0, 1.0 };
+    std::vector<double> default_trans{0.0, 0.0, 0.0};
+    std::vector<double> default_rot{0.0, 0.0, 0.0, 1.0};
 
     /***************************************************************
     // TODO: Declare and retrieve parameters from the parameter server
     // - Declare parameters "<camera_name>.translation" and "<camera_name>.rotation"
     // - Get their values into the `translation` and `rotation` vectors
     ***************************************************************/
+    // 내가 적은: eclare parameters
+    node->declare_parameter<std::vector<double>>(camera_name + ".translation", default_trans);
+    node->declare_parameter<std::vector<double>>(camera_name + ".rotation", default_rot);
 
-
-
-
-
+    // 내가 적은: Retrieve parameters
+    translation = node->get_parameter(camera_name + ".translation").as_double_array();
+    rotation = node->get_parameter(camera_name + ".rotation").as_double_array();
 
     // Display the extrinsic translation and rotation values in the log
     RCLCPP_INFO(node->get_logger(), "extrinsic = [%.2f %.2f %.2f] / rot = [%.2f %.2f %.2f %.2f]",
-        translation[0], translation[1], translation[2],
-        rotation[0], rotation[1], rotation[2], rotation[3]);
+                translation[0], translation[1], translation[2],
+                rotation[0], rotation[1], rotation[2], rotation[3]);
 
     // CameraInfo message pointer to hold the received message
     sensor_msgs::msg::CameraInfo::SharedPtr cam_info_msg = nullptr;
@@ -51,14 +53,16 @@ int main(int argc, char** argv)
     // Subscribe to the camera_info topic to receive intrinsic camera parameters
     auto sub = node->create_subscription<sensor_msgs::msg::CameraInfo>(
         camera_name + "/camera_info", 1,
-        [&cam_info_msg](const sensor_msgs::msg::CameraInfo::SharedPtr msg) {
+        [&cam_info_msg](const sensor_msgs::msg::CameraInfo::SharedPtr msg)
+        {
             cam_info_msg = msg;
         });
 
     // Wait for the camera_info message to be received
     RCLCPP_INFO(node->get_logger(), "Waiting for camera_info...");
     rclcpp::Rate rate(10);
-    while (rclcpp::ok() && cam_info_msg == nullptr) {
+    while (rclcpp::ok() && cam_info_msg == nullptr)
+    {
         rclcpp::spin_some(node);
         rate.sleep();
     }
@@ -69,7 +73,8 @@ int main(int argc, char** argv)
 
     // Wait until the service becomes available
     RCLCPP_INFO(node->get_logger(), "Waiting for service...");
-    if (!client->wait_for_service(5s)) {
+    if (!client->wait_for_service(5s))
+    {
         RCLCPP_ERROR(node->get_logger(), "Service not available.");
         rclcpp::shutdown();
         return 1;
@@ -86,26 +91,30 @@ int main(int argc, char** argv)
     // - Assign the rotation values to pose.orientation.{x, y, z, w}
     // - Assign the constructed pose to req->camera_extrinsic
     ***************************************************************/
+    // 내가 적은:
+    geometry_msgs::msg::Pose pose;
+    pose.position.x = translation[0];
+    pose.position.y = translation[1];
+    pose.position.z = translation[2];
 
+    pose.orientation.x = rotation[0];
+    pose.orientation.y = rotation[1];
+    pose.orientation.z = rotation[2];
+    pose.orientation.w = rotation[3];
 
-
-
-
-
-
-
-
-
+    req->camera_extrinsic = pose;
 
     // Send the service request asynchronously
     auto future = client->async_send_request(req);
 
     // Wait for the result and log the response
-    if (rclcpp::spin_until_future_complete(node, future) == rclcpp::FutureReturnCode::SUCCESS) {
+    if (rclcpp::spin_until_future_complete(node, future) == rclcpp::FutureReturnCode::SUCCESS)
+    {
         auto res = future.get();
         RCLCPP_INFO(node->get_logger(), "Service response: %s", res->message.c_str());
     }
-    else {
+    else
+    {
         RCLCPP_ERROR(node->get_logger(), "Service call failed.");
     }
 
