@@ -45,6 +45,7 @@ private:
         // - Mark configuration as available (have_config_ = true)
         ***************************************************************/
         // 내가 적은:
+        RCLCPP_INFO(this->get_logger(), "Service received config for camera: %s", request->camera_name.c_str());
         camera_name_ = request->camera_name;
         camera_info_ = request->camera_intrinsic;
         camera_pose_ = request->camera_extrinsic;
