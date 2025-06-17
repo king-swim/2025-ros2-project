@@ -93,11 +93,13 @@ private:
         // - If not, log a throttled warning and return
         ***************************************************************/
         // 내가 적은: Check if config is available
+        RCLCPP_INFO(get_logger(), "LIDAR callback triggered");
         if (!have_config_)
         {
             RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 5000, "Camera config not set. Skipping filtering.");
             return;
         }
+        RCLCPP_INFO(get_logger(), "LIDAR received. Running filter...");
         /***************************************************************
         // TODO: Filter the incoming pointcloud using sensor_utils
         // - Call sensor_utils::filter_pointcloud with msg, camera_info_, camera_pose_
