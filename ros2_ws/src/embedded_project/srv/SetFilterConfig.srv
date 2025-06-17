@@ -1,0 +1,7 @@
+# Request
+string camera_name
+sensor_msgs/CameraInfo camera_intrinsic
+geometry_msgs/Pose camera_extrinsic
+---
+# Response
+string message
